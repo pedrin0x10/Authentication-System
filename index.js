@@ -109,7 +109,7 @@ function deletelicense(message){
   var args = message.content
   if (licenses[args] == null)
   return message.channel.send({content:"License not found!"})
-  licenses[args].owner = null 
+  licenses[args].product = null 
   update("database/users.json", licenses)
   dellcs[String(message.author.id)] = false
   return message.channel.send("License has been deleted !")
@@ -224,11 +224,11 @@ client.on('interactionCreate', async (button) => {
         if (keyhw == "standby")
         keyhw = ""
 
-        if (days == null || days > 0)
+        if ((days == null || days > 0) && keys[k].product != null)
         products = products + "```Product: "+keys[k].product+"\nLicense: "+k+"\nIP: "+keyip+"\nHWID: "+keyhw+"\nExpires:"+expires+"```"
     })
 
-    if(products == "")
+  if(products == "")
     products = "All your licenses are expired"
     var embed = new Discord.MessageEmbed()
     .setTitle("Your Products")
@@ -246,7 +246,7 @@ client.on('interactionCreate', async (button) => {
     button.reply({ content:"Enter below: <@user> <product> <days (optional)>", ephemeral: true});
   } else if(button.customId == "deletelicense"){
     dellcs[String(button.user.id)] = true 
-    button.reply({ content:"Enter below: Licnese", ephemeral: true});
+    button.reply({ content:"Enter below: License", ephemeral: true});
   }
 })
 
