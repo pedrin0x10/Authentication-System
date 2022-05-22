@@ -1,9 +1,10 @@
 {
   "prefix" : ".",
-  "token" :"ODkwNzI1MzQ5NzY2MzY1MTk0.GZ5pr-.N9e182wY2XEWdH2IfzUhO8dQOaTCgZCBem9CEQ",
+  "token" :"",
   "port":"80",
   "logautenticado":"891427589183406120",
   "lognaoautenticado":"920735835282894869",
+  "logresets":"920735835282894869",
   "integrations":"977409739837288468",
   "admintegrations":"977661395623633016",
   "admins":["839294243402940426","480797707498160128"],

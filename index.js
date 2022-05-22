@@ -256,7 +256,7 @@ client.on('interactionCreate', async interaction => {
         .setTitle(`Log Resets`)
         .setColor('#2F3136')
         .addField("Product: ","``"+licenses[val].product+"``")
-        .addField("Cliente: ","<@!"+licenses[val].owner+">")
+        .addField("Cliente: ","<@!"+interaction.user.id+">")
         .addField("License: ","``"+val+"``")
         .addField("IP: ","``"+licenses[val].ip+"``")
         .addField("HWID: ","``"+licenses[val].hwid+"``")
