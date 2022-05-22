@@ -157,7 +157,18 @@ client.on('interactionCreate', async (button) => {
 		const firstActionRow = new Discord.MessageActionRow().addComponents(favoriteColorInput);
 		modal.addComponents(firstActionRow);
 		await button.showModal(modal);
-  }else if(button.customId == "genlicense"){
+  }else if(button.customId == "getuserlicenses"){
+    const modal = new Discord.Modal()
+			.setCustomId('mgetuserlicenses')
+			.setTitle('Get User Licenses');
+		const favoriteColorInput = new Discord.TextInputComponent()
+			.setCustomId('userid')
+			.setLabel("Enter Discord ID:")
+			.setStyle('SHORT');
+		const firstActionRow = new Discord.MessageActionRow().addComponents(favoriteColorInput);
+		modal.addComponents(firstActionRow);
+		await button.showModal(modal);
+  } else if(button.customId == "genlicense"){
     const modal = new Discord.Modal()
 			.setCustomId('mgenlicense')
 			.setTitle('Generate license');
@@ -272,6 +283,40 @@ client.on('interactionCreate', async (button) => {
       user.send({embeds: [embed]});
     })
     }catch{}
+  }else if(button.customId == "mgetuserlicenses"){
+    var person = button.fields.getTextInputValue('userid')
+    if(driscord[String(person)] == null)
+    return button.reply({content: "This user has no license !", ephemeral: true});
+    var products = ""
+    var keys = licenses
+    driscord[String(person)].forEach(function(k) {
+        var expires = "Never"
+        if (keys[k] != null){
+        if ( keys[k].expire != null){
+          var days = calcdays(keys[k].date,keys[k].days)
+          expires = days + " days"
+        }
+        keyip = keys[k].ip
+        if (keyip == "standby")
+        keyip = ""
+
+        keyhw = keys[k].hwid
+        if (keyhw == "standby")
+        keyhw = ""
+
+        if ((days == null || days > 0) && keys[k].product != null)
+        products = products + "```Product: "+keys[k].product+"\nLicense: "+k+"\nIP: "+keyip+"\nHWID: "+keyhw+"\nExpires:"+expires+"```"
+      }
+    })
+
+    if(products == "")
+    products = "All your licenses are expired"
+    var embed = new Discord.MessageEmbed()
+    .setTitle("User Licenses")
+    .addField("User: ","<@!"+person+">")
+    .setDescription(products)
+    .setColor('#2F3136')
+    button.reply({ embeds: [embed], ephemeral: true});
   }
 })
 
@@ -298,12 +343,16 @@ function asyncintegrations(){
   client.channels.cache.get(config.integrations).send({ content: ' ', components: [row]})
   const row2 = new Discord.MessageActionRow().addComponents(
     new Discord.MessageButton()
+    .setCustomId('genlicense')
+    .setLabel('GENERATE LICENSE')
+    .setStyle('SUCCESS'),
+    new Discord.MessageButton()
     .setCustomId('getlicenseinfo')
     .setLabel('GET LICENSE INFO')
     .setStyle('SUCCESS'),
     new Discord.MessageButton()
-    .setCustomId('genlicense')
-    .setLabel('GENERATE LICENSE')
+    .setCustomId('getuserlicenses')
+    .setLabel('GET USER LICENSES')
     .setStyle('SUCCESS'),
     new Discord.MessageButton()
     .setCustomId('unblacklisthw')
