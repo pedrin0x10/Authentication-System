@@ -36,10 +36,21 @@ var dellcs = {}
 
 function resetip(message){
   if(driscord[String(message.author.id)].includes(message.content)){
+    var embed = new Discord.MessageEmbed()
+    .setTitle(`Log Resets`)
+    .setColor('#2F3136')
+    .addField("Product: ","``"+licenses[message.content].product+"``")
+    .addField("Cliente: ","<@!"+licenses[message.content].owner+">")
+    .addField("License: ","``"+message.content+"``")
+    .addField("IP: ","``"+licenses[message.content].ip+"``")
+    .addField("HWID: ","``"+licenses[message.content].hwid+"``")
+    .setTimestamp(new Date())
+    .setFooter("Storm Devs")
     licenses[message.content].ip = "standby"
     licenses[message.content].hwid = "standby"
     update("database/users.json", licenses)
     resets[String(message.author.id)] = null
+    client.channels.cache.get(config.logresets).send({ embeds: [embed] })
     return "IP reset successfully, new IP will be configured automatically when authenticated!"
   }else{
     resets[String(message.author.id)] = null
