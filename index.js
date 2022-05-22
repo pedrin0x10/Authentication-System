@@ -46,8 +46,11 @@ client.on('message', (message) => {
 
 client.on('interactionCreate', async (button) => {
   if(button.customId == "resetdevice"){
+    if(driscord[String(button.user.id)] == null)
+    return button.reply({content: "You don't have any license !", ephemeral: true});
     var combo = []
     var keys = licenses
+    var qtd = 0
     driscord[String(button.user.id)].forEach(function(k) {
       if (keys[k].expire == true){
         var days = calcdays(keys[k].date,keys[k].days)
@@ -67,9 +70,13 @@ client.on('interactionCreate', async (button) => {
           description: 'Current IP: '+keyip+', License: '+k,
           value: k,
         }
+        qtd = qtd + 1
         combo.push(currlicense)
       }
     })
+    if (qtd == 0){
+      return button.reply({content: "You don't have any license !", ephemeral: true});
+    }
     const row = new Discord.MessageActionRow().addComponents(
       new Discord.MessageSelectMenu()
       .setCustomId('lcsreseter')
