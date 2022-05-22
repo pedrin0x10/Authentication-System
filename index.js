@@ -381,7 +381,7 @@ client.on("ready", () => {
   asyncintegrations()
   setInterval(() => {
     asyncintegrations()
-  }, 30*60*1000)
+  }, 60*60*1000)
 });
 
 function pad2(n) {
