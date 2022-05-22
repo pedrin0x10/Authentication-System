@@ -34,6 +34,214 @@ var genlcs = {}
 var lcsinfo = {}
 var dellcs = {}
 
+
+client.on('message', (message) => {
+  if (message.author.bot) return;
+
+  if (message.channelId == config.integrations){
+    if (resets[String(message.author.id)] == true){
+      message.author.send({content:resetip(message), ephemeral: true})
+      return message.delete()
+    }else{
+      return message.delete()
+    }
+  }else
+
+  if (message.channelId == config.admintegrations){
+    if (unbl[String(message.author.id)] == true){
+      unblacklisthw(message)
+      return message.delete()
+    }else if (genlcs[String(message.author.id)] == true){
+      if (message.content != null)
+      generatelcs(message)
+
+      return message.delete()
+    }else if (lcsinfo[String(message.author.id)] == true){
+      getlicenseinfo(message)
+      return message.delete()
+    }else if (dellcs[String(message.author.id)] == true){
+      deletelicense(message)
+      return message.delete()
+    } else{
+      return message.delete()
+    }
+  }
+});
+
+client.on('interactionCreate', async (button) => {
+  if(interaction.customId == "resetdevice"){
+    var combo = []
+    var keys = licenses
+    driscord[String(interaction.user.id)].forEach(function(k) {
+      var expires = "Never"
+      if (keys[k].expire == true){
+        var days = calcdays(keys[k].date,keys[k].days)
+        expires = days + " days"
+      }
+      keyip = keys[k].ip
+      if (keyip == "standby")
+      keyip = ""
+
+      keyhw = keys[k].hwid
+      if (keyhw == "standby")
+      keyhw = ""
+
+      if ((days == null || days > 0) && keys[k].product != null){
+
+        var currlicense = {
+          label: 'Product: '+keys[k].product,
+          description: 'Current IP: '+keyip+', License: '+k,
+          value: k,
+        }
+        combo.push(currlicense)
+      }
+    })
+    const row = new Discord.MessageActionRow().addComponents(
+      new Discord.MessageSelectMenu()
+      .setCustomId('lcsreseter')
+      .setPlaceholder('Select the license you want to reset')
+      .setMinValues(1)
+      .setMaxValues(1)
+      .addOptions(combo),
+    );
+		await interaction.reply({ content: '  ', components: [row], ephemeral: true });
+	}
+  if(interaction.customId == "lcsreseter"){
+    interaction.values.forEach(function(val) {
+      if(licenses[val].ip != "standby" || licenses[val].hwid != "standby"){
+        var embed = new Discord.MessageEmbed()
+        .setTitle(`Log Resets`)
+        .setColor('#2F3136')
+        .addField("Product: ","``"+licenses[val].product+"``")
+        .addField("Cliente: ","<@!"+interaction.user.id+">")
+        .addField("License: ","``"+val+"``")
+        .addField("IP: ","``"+licenses[val].ip+"``")
+        .addField("HWID: ","``"+licenses[val].hwid+"``")
+        .setTimestamp(new Date())
+        .setFooter("Storm")
+        licenses[val].ip = "standby"
+        licenses[val].hwid = "standby"
+        update("database/users.json", licenses)
+        client.channels.cache.get(config.logresets).send({ embeds: [embed] })
+        interaction.reply({ content: 'License devices id has been reseted !', ephemeral: true });
+      }else{
+        interaction.reply({ content: 'This license is already reseted !', ephemeral: true });
+      }
+    })
+  }
+  if (!button.isButton()) return;
+  if(button.customId == "getinfos"){
+    if(driscord[String(button.user.id)] == null)
+    return button.reply({content: "You don't have any license !", ephemeral: true});
+    var products = ""
+    var keys = licenses
+    driscord[String(button.user.id)].forEach(function(k) {
+        var expires = "Never"
+        if (keys[k].expire == true){
+          var days = calcdays(keys[k].date,keys[k].days)
+          expires = days + " days"
+        }
+        keyip = keys[k].ip
+        if (keyip == "standby")
+        keyip = ""
+
+        keyhw = keys[k].hwid
+        if (keyhw == "standby")
+        keyhw = ""
+
+        if ((days == null || days > 0) && keys[k].product != null)
+        products = products + "```Product: "+keys[k].product+"\nLicense: "+k+"\nIP: "+keyip+"\nHWID: "+keyhw+"\nExpires:"+expires+"```"
+    })
+
+  if(products == "")
+    products = "All your licenses are expired"
+    var embed = new Discord.MessageEmbed()
+    .setTitle("Your Products")
+    .setDescription(products)
+    .setColor('#2F3136')
+    button.reply({ embeds: [embed], ephemeral: true});
+  }else if(button.customId == "unblacklisthw"){
+    unbl[String(button.user.id)] = true 
+    button.reply({ content:"Enter below: HWID", ephemeral: true});
+  }else if(button.customId == "getlicenseinfo"){
+    lcsinfo[String(button.user.id)] = true 
+    button.reply({ content:"Enter below: License", ephemeral: true});
+  }else if(button.customId == "genlicense"){
+    genlcs[String(button.user.id)] = true 
+    button.reply({ content:"Enter below: <@user> <product> <days (optional)>", ephemeral: true});
+  } else if(button.customId == "deletelicense"){
+    dellcs[String(button.user.id)] = true 
+    button.reply({ content:"Enter below: License", ephemeral: true});
+  }
+})
+
+function asyncintegrations(){
+  client.channels.cache.get(config.integrations).bulkDelete(100).catch(() => console.error)
+  client.channels.cache.get(config.admintegrations).bulkDelete(100).catch(() => console.error)
+  resets = {}
+  unbl = {}
+  genlcs = {}
+  const row = new Discord.MessageActionRow().addComponents(
+    new Discord.MessageButton()
+    .setCustomId('resetdevice')
+    .setLabel('RESET LICENSE DEVICE')
+    .setStyle('SUCCESS'),
+    new Discord.MessageButton()
+    .setCustomId('getinfos')
+    .setLabel('GET YOUR LICENSES')
+    .setStyle('SUCCESS'),
+  );
+  client.channels.cache.get(config.integrations).send({ content: ' ', components: [row]})
+  const row2 = new Discord.MessageActionRow().addComponents(
+    new Discord.MessageButton()
+    .setCustomId('getlicenseinfo')
+    .setLabel('GET LICENSE INFO')
+    .setStyle('SUCCESS'),
+    new Discord.MessageButton()
+    .setCustomId('genlicense')
+    .setLabel('GENERATE LICENSE')
+    .setStyle('SUCCESS'),
+    new Discord.MessageButton()
+    .setCustomId('unblacklisthw')
+    .setLabel('UNBLACKLIST HWID')
+    .setStyle('DANGER'),
+    new Discord.MessageButton()
+    .setCustomId('deletelicense')
+    .setLabel('DELETE LICENSE')
+    .setStyle('DANGER'),
+  );
+  client.channels.cache.get(config.admintegrations).send({ content: ' ', components: [row2]})
+  console.clear()
+  console.log("Bot e HTTP Server estao ONLINE!")
+}
+
+client.on("ready", () => {
+  console.log("Bot e HTTP Server estao ONLINE!")
+  client.user.setStatus("online")
+  asyncintegrations()
+  setInterval(() => {
+    asyncintegrations()
+  }, 3*60*1000)
+});
+
+function pad2(n) {
+  return (n < 10 ? '0' : '') + n;
+}
+
+function calcdays(n,s) {
+  let unix_timestamp = n;
+  var date = new Date(unix_timestamp * 1000);
+  var month = pad2(date.getMonth()+1);
+  var day = pad2(date.getDate());
+  var year= date.getFullYear();
+  const startDate  = year + '-' + month + '-' + day;
+  const endDate    = new Date().toISOString().slice(0, 10);
+  const diffInMs   = new Date(startDate) - new Date(endDate);
+  const diffInDays = diffInMs / (1000 * 60 * 60 * 24) ;
+  let ret = parseInt(diffInDays) + parseInt(s);
+  return ret
+}
+
 function resetip(message){
   if(driscord[String(message.author.id)].includes(message.content)){
     var embed = new Discord.MessageEmbed()
@@ -161,216 +369,6 @@ function getlicenseinfo(message){
   message.channel.send({embeds: [embed]});
 }
 
-client.on('message', (message) => {
-  if (message.author.bot) return;
-
-  if (message.channelId == config.integrations){
-    if (resets[String(message.author.id)] == true){
-      message.author.send({content:resetip(message), ephemeral: true})
-      return message.delete()
-    }else{
-      return message.delete()
-    }
-  }else
-
-  if (message.channelId == config.admintegrations){
-    if (unbl[String(message.author.id)] == true){
-      unblacklisthw(message)
-      return message.delete()
-    }else if (genlcs[String(message.author.id)] == true){
-      if (message.content != null)
-      generatelcs(message)
-
-      return message.delete()
-    }else if (lcsinfo[String(message.author.id)] == true){
-      getlicenseinfo(message)
-      return message.delete()
-    }else if (dellcs[String(message.author.id)] == true){
-      deletelicense(message)
-      return message.delete()
-    } else{
-      return message.delete()
-    }
-  }
-});
-
-function pad2(n) {
-  return (n < 10 ? '0' : '') + n;
-}
-
-function calcdays(n,s) {
-  let unix_timestamp = n;
-  var date = new Date(unix_timestamp * 1000);
-  var month = pad2(date.getMonth()+1);
-  var day = pad2(date.getDate());
-  var year= date.getFullYear();
-  const startDate  = year + '-' + month + '-' + day;
-  const endDate    = new Date().toISOString().slice(0, 10);
-  const diffInMs   = new Date(startDate) - new Date(endDate);
-  const diffInDays = diffInMs / (1000 * 60 * 60 * 24) ;
-  let ret = parseInt(diffInDays) + parseInt(s);
-  return ret
-}
-
-client.on('interactionCreate', async interaction => {
-  if(interaction.customId == "resetdevice"){
-    var combo = []
-    var keys = licenses
-    driscord[String(interaction.user.id)].forEach(function(k) {
-      var expires = "Never"
-      if (keys[k].expire == true){
-        var days = calcdays(keys[k].date,keys[k].days)
-        expires = days + " days"
-      }
-      keyip = keys[k].ip
-      if (keyip == "standby")
-      keyip = ""
-
-      keyhw = keys[k].hwid
-      if (keyhw == "standby")
-      keyhw = ""
-
-      if ((days == null || days > 0) && keys[k].product != null){
-
-        var currlicense = {
-          label: 'Product: '+keys[k].product,
-          description: 'Current IP: '+keyip+', License: '+k,
-          value: k,
-        }
-        combo.push(currlicense)
-      }
-    })
-    const row = new Discord.MessageActionRow().addComponents(
-      new Discord.MessageSelectMenu()
-      .setCustomId('lcsreseter')
-      .setPlaceholder('Select the license you want to reset')
-      .setMinValues(1)
-      .setMaxValues(1)
-      .addOptions(combo),
-    );
-		await interaction.reply({ content: '  ', components: [row], ephemeral: true });
-	}
-  if(interaction.customId == "lcsreseter"){
-    interaction.values.forEach(function(val) {
-      if(licenses[val].ip != "standby" || licenses[val].hwid != "standby"){
-        var embed = new Discord.MessageEmbed()
-        .setTitle(`Log Resets`)
-        .setColor('#2F3136')
-        .addField("Product: ","``"+licenses[val].product+"``")
-        .addField("Cliente: ","<@!"+interaction.user.id+">")
-        .addField("License: ","``"+val+"``")
-        .addField("IP: ","``"+licenses[val].ip+"``")
-        .addField("HWID: ","``"+licenses[val].hwid+"``")
-        .setTimestamp(new Date())
-        .setFooter("Storm")
-        licenses[val].ip = "standby"
-        licenses[val].hwid = "standby"
-        update("database/users.json", licenses)
-        client.channels.cache.get(config.logresets).send({ embeds: [embed] })
-        interaction.reply({ content: 'License devices id has been reseted !', ephemeral: true });
-      }else{
-        interaction.reply({ content: 'This license is already reseted !', ephemeral: true });
-      }
-    })
-  }
-});
-
-client.on('interactionCreate', async (button) => {
-  if (!button.isButton()) return;
-  if(button.customId == "getinfos"){
-    if(driscord[String(button.user.id)] == null)
-    return button.reply({content: "You don't have any license !", ephemeral: true});
-    var products = ""
-    var keys = licenses
-    driscord[String(button.user.id)].forEach(function(k) {
-        var expires = "Never"
-        if (keys[k].expire == true){
-          var days = calcdays(keys[k].date,keys[k].days)
-          expires = days + " days"
-        }
-        keyip = keys[k].ip
-        if (keyip == "standby")
-        keyip = ""
-
-        keyhw = keys[k].hwid
-        if (keyhw == "standby")
-        keyhw = ""
-
-        if ((days == null || days > 0) && keys[k].product != null)
-        products = products + "```Product: "+keys[k].product+"\nLicense: "+k+"\nIP: "+keyip+"\nHWID: "+keyhw+"\nExpires:"+expires+"```"
-    })
-
-  if(products == "")
-    products = "All your licenses are expired"
-    var embed = new Discord.MessageEmbed()
-    .setTitle("Your Products")
-    .setDescription(products)
-    .setColor('#2F3136')
-    button.reply({ embeds: [embed], ephemeral: true});
-  }else if(button.customId == "unblacklisthw"){
-    unbl[String(button.user.id)] = true 
-    button.reply({ content:"Enter below: HWID", ephemeral: true});
-  }else if(button.customId == "getlicenseinfo"){
-    lcsinfo[String(button.user.id)] = true 
-    button.reply({ content:"Enter below: License", ephemeral: true});
-  }else if(button.customId == "genlicense"){
-    genlcs[String(button.user.id)] = true 
-    button.reply({ content:"Enter below: <@user> <product> <days (optional)>", ephemeral: true});
-  } else if(button.customId == "deletelicense"){
-    dellcs[String(button.user.id)] = true 
-    button.reply({ content:"Enter below: License", ephemeral: true});
-  }
-})
-
-function asyncintegrations(){
-  client.channels.cache.get(config.integrations).bulkDelete(100).catch(() => console.error)
-  client.channels.cache.get(config.admintegrations).bulkDelete(100).catch(() => console.error)
-  resets = {}
-  unbl = {}
-  genlcs = {}
-  const row = new Discord.MessageActionRow().addComponents(
-    new Discord.MessageButton()
-    .setCustomId('resetdevice')
-    .setLabel('RESET LICENSE DEVICE')
-    .setStyle('SUCCESS'),
-    new Discord.MessageButton()
-    .setCustomId('getinfos')
-    .setLabel('GET YOUR LICENSES')
-    .setStyle('SUCCESS'),
-  );
-  client.channels.cache.get(config.integrations).send({ content: ' ', components: [row]})
-  const row2 = new Discord.MessageActionRow().addComponents(
-    new Discord.MessageButton()
-    .setCustomId('getlicenseinfo')
-    .setLabel('GET LICENSE INFO')
-    .setStyle('SUCCESS'),
-    new Discord.MessageButton()
-    .setCustomId('genlicense')
-    .setLabel('GENERATE LICENSE')
-    .setStyle('SUCCESS'),
-    new Discord.MessageButton()
-    .setCustomId('unblacklisthw')
-    .setLabel('UNBLACKLIST HWID')
-    .setStyle('DANGER'),
-    new Discord.MessageButton()
-    .setCustomId('deletelicense')
-    .setLabel('DELETE LICENSE')
-    .setStyle('DANGER'),
-  );
-  client.channels.cache.get(config.admintegrations).send({ content: ' ', components: [row2]})
-  console.clear()
-  console.log("Bot e HTTP Server estao ONLINE!")
-}
-
-client.on("ready", () => {
-  console.log("Bot e HTTP Server estao ONLINE!")
-  client.user.setStatus("online")
-  asyncintegrations()
-  setInterval(() => {
-    asyncintegrations()
-  }, 3*60*1000)
-});
-
 function getnewtoken(){
   var n = new Date(new Date().toUTCString())
   var calc = Math.floor(n/1000)
@@ -434,6 +432,16 @@ app.get('/api/pedrin/authenticate', function(req, res){
     }
     if(licenses[req.query.license] != null){
       if(licenses[req.query.license].product == req.query.product){
+        var expires = "Never"
+        var days = 1
+        if (licenses[k].expire == true){
+          days = calcdays(licenses[k].date,licenses[k].days)
+          expires = days + " days"
+        }
+        if (days == null || days > 0 || keys[k].product == null){
+          logauthenticate(false,licenses[req.query.license].owner,req.query.product,req.query.ip,req.query.license,"LICENSE EXPIRED",req.query.guid)
+          return res.end('{"code":"072"}')
+        }
         if(licenses[req.query.license].ip == req.query.ip){
           if(licenses[req.query.license].hwid == req.query.guid){
             res.end('{"code":"070", "tp":"'+getnewtoken()+'","ip":"'+req.query.ip+'","discordid":"'+licenses[req.query.license].owner+'","productinfo":"'+config.products[req.query.product]+'"}')
@@ -499,7 +507,6 @@ function logauthenticate(auth,id,script,ip,license,motivo,hwid){
     client.channels.cache.get(config.lognaoautenticado).send({embeds: [embed]})
   }
 }
-
 
 function update(file, json) {
   fs.writeFile(file, JSON.stringify(json, null, 2), "utf8", function(err) {});
