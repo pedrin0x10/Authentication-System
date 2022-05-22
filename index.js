@@ -28,40 +28,15 @@ const client = new Client({
 
 client.config = config;
 
-var resets = {}
-var unbl = {}
 var genlcs = {}
-var lcsinfo = {}
-var dellcs = {}
-
 
 client.on('message', (message) => {
   if (message.author.bot) return;
 
-  if (message.channelId == config.integrations){
-    if (resets[String(message.author.id)] == true){
-      message.author.send({content:resetip(message), ephemeral: true})
-      return message.delete()
-    }else{
-      return message.delete()
-    }
-  }else
-
   if (message.channelId == config.admintegrations){
-    if (unbl[String(message.author.id)] == true){
-      unblacklisthw(message)
-      return message.delete()
-    }else if (genlcs[String(message.author.id)] == true){
+    if (genlcs[String(message.author.id)] == true){
       if (message.content != null)
       generatelcs(message)
-
-      return message.delete()
-    }else if (lcsinfo[String(message.author.id)] == true){
-      getlicenseinfo(message)
-      return message.delete()
-    }else if (dellcs[String(message.author.id)] == true){
-      deletelicense(message)
-      return message.delete()
     } else{
       return message.delete()
     }
@@ -69,10 +44,10 @@ client.on('message', (message) => {
 });
 
 client.on('interactionCreate', async (button) => {
-  if(interaction.customId == "resetdevice"){
+  if(button.customId == "resetdevice"){
     var combo = []
     var keys = licenses
-    driscord[String(interaction.user.id)].forEach(function(k) {
+    driscord[String(button.user.id)].forEach(function(k) {
       var expires = "Never"
       if (keys[k].expire == true){
         var days = calcdays(keys[k].date,keys[k].days)
@@ -104,16 +79,16 @@ client.on('interactionCreate', async (button) => {
       .setMaxValues(1)
       .addOptions(combo),
     );
-		await interaction.reply({ content: '  ', components: [row], ephemeral: true });
+		await button.reply({ content: '  ', components: [row], ephemeral: true });
 	}
-  if(interaction.customId == "lcsreseter"){
-    interaction.values.forEach(function(val) {
+  if(button.customId == "lcsreseter"){
+    button.values.forEach(function(val) {
       if(licenses[val].ip != "standby" || licenses[val].hwid != "standby"){
         var embed = new Discord.MessageEmbed()
         .setTitle(`Log Resets`)
         .setColor('#2F3136')
         .addField("Product: ","``"+licenses[val].product+"``")
-        .addField("Cliente: ","<@!"+interaction.user.id+">")
+        .addField("Cliente: ","<@!"+button.user.id+">")
         .addField("License: ","``"+val+"``")
         .addField("IP: ","``"+licenses[val].ip+"``")
         .addField("HWID: ","``"+licenses[val].hwid+"``")
@@ -123,13 +98,12 @@ client.on('interactionCreate', async (button) => {
         licenses[val].hwid = "standby"
         update("database/users.json", licenses)
         client.channels.cache.get(config.logresets).send({ embeds: [embed] })
-        interaction.reply({ content: 'License devices id has been reseted !', ephemeral: true });
+        button.reply({ content: 'License devices id has been reseted !', ephemeral: true });
       }else{
-        interaction.reply({ content: 'This license is already reseted !', ephemeral: true });
+        button.reply({ content: 'This license is already reseted !', ephemeral: true });
       }
     })
   }
-  if (!button.isButton()) return;
   if(button.customId == "getinfos"){
     if(driscord[String(button.user.id)] == null)
     return button.reply({content: "You don't have any license !", ephemeral: true});
@@ -137,7 +111,8 @@ client.on('interactionCreate', async (button) => {
     var keys = licenses
     driscord[String(button.user.id)].forEach(function(k) {
         var expires = "Never"
-        if (keys[k].expire == true){
+        if (keys[k] != null){
+        if ( keys[k].expire != null){
           var days = calcdays(keys[k].date,keys[k].days)
           expires = days + " days"
         }
@@ -151,9 +126,10 @@ client.on('interactionCreate', async (button) => {
 
         if ((days == null || days > 0) && keys[k].product != null)
         products = products + "```Product: "+keys[k].product+"\nLicense: "+k+"\nIP: "+keyip+"\nHWID: "+keyhw+"\nExpires:"+expires+"```"
+      }
     })
 
-  if(products == "")
+    if(products == "")
     products = "All your licenses are expired"
     var embed = new Discord.MessageEmbed()
     .setTitle("Your Products")
@@ -161,25 +137,89 @@ client.on('interactionCreate', async (button) => {
     .setColor('#2F3136')
     button.reply({ embeds: [embed], ephemeral: true});
   }else if(button.customId == "unblacklisthw"){
-    unbl[String(button.user.id)] = true 
-    button.reply({ content:"Enter below: HWID", ephemeral: true});
+    const modal = new Discord.Modal()
+			.setCustomId('munblacklisthw')
+			.setTitle('Unblacklist HARDWARE ID');
+		const favoriteColorInput = new Discord.TextInputComponent()
+			.setCustomId('hwid')
+			.setLabel("Enter Hardware ID:")
+			.setStyle('SHORT');
+		const firstActionRow = new Discord.MessageActionRow().addComponents(favoriteColorInput);
+		modal.addComponents(firstActionRow);
+		await button.showModal(modal);
   }else if(button.customId == "getlicenseinfo"){
-    lcsinfo[String(button.user.id)] = true 
-    button.reply({ content:"Enter below: License", ephemeral: true});
+    const modal = new Discord.Modal()
+			.setCustomId('mgetlicenseinfo')
+			.setTitle('Get License Information');
+		const favoriteColorInput = new Discord.TextInputComponent()
+			.setCustomId('license')
+			.setLabel("Enter License:")
+			.setStyle('SHORT');
+		const firstActionRow = new Discord.MessageActionRow().addComponents(favoriteColorInput);
+		modal.addComponents(firstActionRow);
+		await button.showModal(modal);
   }else if(button.customId == "genlicense"){
     genlcs[String(button.user.id)] = true 
     button.reply({ content:"Enter below: <@user> <product> <days (optional)>", ephemeral: true});
   } else if(button.customId == "deletelicense"){
-    dellcs[String(button.user.id)] = true 
-    button.reply({ content:"Enter below: License", ephemeral: true});
+    const modal = new Discord.Modal()
+			.setCustomId('mdeletelicense')
+			.setTitle('Delete License');
+		const favoriteColorInput = new Discord.TextInputComponent()
+			.setCustomId('license')
+			.setLabel("Enter License:")
+			.setStyle('SHORT');
+		const firstActionRow = new Discord.MessageActionRow().addComponents(favoriteColorInput);
+		modal.addComponents(firstActionRow);
+		await button.showModal(modal);
+  }else if (button.customId == "munblacklisthw"){
+    guidbl[button.fields.getTextInputValue('hwid')] = null 
+    update("database/gblacklist.json", guidbl)
+    button.reply({ content:"HWID removed from blacklist !", ephemeral: true});
+  }else if(button.customId == "mdeletelicense"){
+    if (licenses[button.fields.getTextInputValue('license')] == null)
+    return button.reply({ content:"License not found !", ephemeral: true});
+    licenses[button.fields.getTextInputValue('license')].product = null 
+    update("database/users.json", licenses)
+    return button.reply({ content:"License has been deleted!", ephemeral: true});
+  }else if(button.customId == "mgetlicenseinfo"){
+    var keys = licenses
+    var k = button.fields.getTextInputValue('license')
+    if (licenses[k] == null || licenses[k].product == null)
+    return button.reply({content: "License not found", ephemeral: true});
+    
+    var expires = "Never"
+    if (keys[k].expire == true){
+        var days = calcdays(keys[k].date,keys[k].days)
+        if (days < 0)
+        expires = " Expired"
+        else
+        expires = days + " days"
+    }
+    keyip = keys[k].ip
+    if (keyip == "standby")
+    keyip = " "
+  
+    keyhw = keys[k].hwid
+    if (keyhw == "standby")
+    keyhw = " "
+  
+    var embed = new Discord.MessageEmbed()
+    .setTitle(`License Information\n`)
+    .addField(`User: `, `<@!${keys[k].owner}>`)
+    .addField(`License: `, "``"+k+"``")
+    .addField(`Product: `, "``"+keys[k].product+"``")
+    .addField(`Expires: `, "``"+expires+"``")
+    .addField(`IP: `, "``"+keyip+"``")
+    .addField(`HWID: `, "``"+keyhw+"``")
+    .setColor('#2F3136')
+    button.reply({embeds: [embed], ephemeral: true});
   }
 })
 
 function asyncintegrations(){
   client.channels.cache.get(config.integrations).bulkDelete(100).catch(() => console.error)
   client.channels.cache.get(config.admintegrations).bulkDelete(100).catch(() => console.error)
-  resets = {}
-  unbl = {}
   genlcs = {}
   const row = new Discord.MessageActionRow().addComponents(
     new Discord.MessageButton()
@@ -221,7 +261,7 @@ client.on("ready", () => {
   asyncintegrations()
   setInterval(() => {
     asyncintegrations()
-  }, 3*60*1000)
+  }, 5*60*1000)
 });
 
 function pad2(n) {
@@ -240,30 +280,6 @@ function calcdays(n,s) {
   const diffInDays = diffInMs / (1000 * 60 * 60 * 24) ;
   let ret = parseInt(diffInDays) + parseInt(s);
   return ret
-}
-
-function resetip(message){
-  if(driscord[String(message.author.id)].includes(message.content)){
-    var embed = new Discord.MessageEmbed()
-    .setTitle(`Log Resets`)
-    .setColor('#2F3136')
-    .addField("Product: ","``"+licenses[message.content].product+"``")
-    .addField("Cliente: ","<@!"+licenses[message.content].owner+">")
-    .addField("License: ","``"+message.content+"``")
-    .addField("IP: ","``"+licenses[message.content].ip+"``")
-    .addField("HWID: ","``"+licenses[message.content].hwid+"``")
-    .setTimestamp(new Date())
-    .setFooter("Storm")
-    licenses[message.content].ip = "standby"
-    licenses[message.content].hwid = "standby"
-    update("database/users.json", licenses)
-    resets[String(message.author.id)] = null
-    client.channels.cache.get(config.logresets).send({ embeds: [embed] })
-    return "IP reset successfully, new IP will be configured automatically when authenticated!"
-  }else{
-    resets[String(message.author.id)] = null
-    return "License not found/does not belong to you!"
-  }
 }
 
 function makeid(length) {
@@ -312,61 +328,6 @@ function generatelcs(message){
   message.mentions.members.first().send({embeds: [embed]});
   genlcs[String(message.author.id)] = false
   message.channel.send({content:"Key sent in client's private !", ephemeral: true})
-}
-
-function unblacklisthw(message){
-  var args = message.content.trim().split(/ +/g);
-  if (args[0] == null)
-  return message.channel.send("Enter below: HWID");
-  guidbl[args] = null 
-  update("database/gblacklist.json", guidbl)
-  unbl[String(message.author.id)] = false
-  return message.channel.send("HWID removed from blacklist !")
-}
-
-function deletelicense(message){
-  var args = message.content
-  if (licenses[args] == null)
-  return message.channel.send({content:"License not found!"})
-  licenses[args].product = null 
-  update("database/users.json", licenses)
-  dellcs[String(message.author.id)] = null
-  return message.channel.send("License has been deleted !")
-}
-
-function getlicenseinfo(message){
-  var keys = licenses
-  lcsinfo[String(message.author.id)] = null
-  var k = message.content
-  if (licenses[k] == null || licenses[k].product == null)
-  return message.channel.send({content: "License not found"});
-  
-  var expires = "Never"
-  if (keys[k].expire == true){
-      var days = calcdays(keys[k].date,keys[k].days)
-      if (days < 0)
-      expires = " Expired"
-      else
-      expires = days + " days"
-  }
-  keyip = keys[k].ip
-  if (keyip == "standby")
-  keyip = " "
-
-  keyhw = keys[k].hwid
-  if (keyhw == "standby")
-  keyhw = " "
-
-  var embed = new Discord.MessageEmbed()
-  .setTitle(`License Information\n`)
-  .addField(`User: `, `<@!${keys[k].owner}>`)
-  .addField(`License: `, "``"+k+"``")
-  .addField(`Product: `, "``"+keys[k].product+"``")
-  .addField(`Expires: `, "``"+expires+"``")
-  .addField(`IP: `, "``"+keyip+"``")
-  .addField(`HWID: `, "``"+keyhw+"``")
-  .setColor('#2F3136')
-  message.channel.send({embeds: [embed]});
 }
 
 function getnewtoken(){
