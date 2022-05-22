@@ -122,12 +122,13 @@ function deletelicense(message){
   return message.channel.send({content:"License not found!"})
   licenses[args].product = null 
   update("database/users.json", licenses)
-  dellcs[String(message.author.id)] = false
+  dellcs[String(message.author.id)] = null
   return message.channel.send("License has been deleted !")
 }
 
 function getlicenseinfo(message){
   var keys = licenses
+  lcsinfo[String(message.author.id)] = null
   var k = message.content
   if (licenses[k] == null || licenses[k].product == null)
   return message.channel.send({content: "License not found"});
@@ -232,7 +233,7 @@ client.on('interactionCreate', async interaction => {
       if ((days == null || days > 0) && keys[k].product != null){
 
         var currlicense = {
-          label: keys[k].product,
+          label: 'Product: '+keys[k].product,
           description: 'Current IP: '+keyip+', License: '+k,
           value: k,
         }
