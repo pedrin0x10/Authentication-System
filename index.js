@@ -45,7 +45,7 @@ function resetip(message){
     .addField("IP: ","``"+licenses[message.content].ip+"``")
     .addField("HWID: ","``"+licenses[message.content].hwid+"``")
     .setTimestamp(new Date())
-    .setFooter("Storm Devs")
+    .setFooter("Storm")
     licenses[message.content].ip = "standby"
     licenses[message.content].hwid = "standby"
     update("database/users.json", licenses)
@@ -422,7 +422,7 @@ function logauthenticate(auth,id,script,ip,license,motivo,hwid){
       .addField("IP: ","``"+ip+"``")
       .addField("HWID: ","``"+hwid+"``")
       .setTimestamp(new Date())
-      .setFooter("Storm Devs")
+      .setFooter("Storm")
     client.channels.cache.get(config.logautenticado).send({ embeds: [embed] })
   } else{
     var embed = new Discord.MessageEmbed()
@@ -433,7 +433,7 @@ function logauthenticate(auth,id,script,ip,license,motivo,hwid){
       .addField("IP: ","``"+ip+"``")
       .addField("HWID: ","``"+hwid+"``")
       .addField("Reason: ","``"+motivo+"``")
-      .setFooter("Storm Devs")
+      .setFooter("Storm")
       .setTimestamp(new Date())
     client.channels.cache.get(config.lognaoautenticado).send({embeds: [embed]})
   }
