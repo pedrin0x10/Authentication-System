@@ -261,7 +261,7 @@ client.on("ready", () => {
   asyncintegrations()
   setInterval(() => {
     asyncintegrations()
-  }, 5*60*1000)
+  }, 30*60*1000)
 });
 
 function pad2(n) {
@@ -291,6 +291,7 @@ function makeid(length) {
 }
 
 function generatelcs(message){
+  genlcs[String(message.author.id)] = null
   var args = message.content.trim().split(/ +/g);
   if (args[0] == null || args[1] == null)
   return message.channel.send({content:"<@user> <product> <days (optional)>", ephemeral: true})
@@ -326,7 +327,6 @@ function generatelcs(message){
   .addField(`Expires: `, "``"+expiration+"``")
   .setColor('#2F3136')
   message.mentions.members.first().send({embeds: [embed]});
-  genlcs[String(message.author.id)] = false
   message.channel.send({content:"Key sent in client's private !", ephemeral: true})
 }
 
