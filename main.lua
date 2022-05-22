@@ -14,19 +14,21 @@ end
 
 ---------------------------------------------------
 ]] 
+
 -- CONFIG -----------------------------------------------------------
-local product = "fucker"
-local currentlicense = json.decode(LoadResourceFile(GetCurrentResourceName(),"license.json"))
-local api = "http://api.pedrin.xyz" 
+local api = "localhost"
 
 -- IGNORE---------------------------------------------------------------------
-local re ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/' local function base64dec(data) data = string.gsub(data, '[^'..re..'=]', '') return (data:gsub('.', function(x) if (x == '=') then return '' end local r,f='',(re:find(x)-1) for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end return r; end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x) if (#x ~= 8) then return '' end local c=0 for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end return string.char(c) end)) end local function base64enc(a)return(a:gsub('.',function(b)local c,d='',b:byte()for e=8,1,-1 do c=c..(d%2^e-d%2^(e-1)>0 and'1'or'0')end;return c end)..'0000'):gsub('%d%d%d?%d?%d?%d?',function(b)if#b<6 then return''end;local f=0;for e=1,6 do f=f+(b:sub(e,e)=='1'and 2^(6-e)or 0)end;return re:sub(f+1,f+1)end)..({'','==','='})[#a%3+1]end local a={}local function b(c)local d=msgpack.pack(c)return d,#d end;local function e(f)local g,h=b(f)return Citizen.InvokeNative(0x6b171e87,g,h,_ri)end;local i={}AddEventHandler('__cfx_internal:httpResponse',function(j,k,l,m,n)if i[j]then local o=i[j]i[j]=nil;o(k,l,m,n)return end end)local function HttpReq(q,r,s,t,m,u)local v=true;if u and u.followLocation~=nil then v=u.followLocation end;local w={url=q,method=s or'GET',data=t or'',headers=m or{},followLocation=v}local x=e(w)if x~=-1 then i[x]=r else r(0,nil,{},'Failure handling HTTP request')end end;function a:authenticatetoken(y)local z=tonumber(base64dec(y))/237356;local A=os.time(os.date("*t"))if z~=nil then local B=math.floor(math.floor(z)-A)if B==0 or B>-15 and B<15 then return true else return false end end end;function a:gethwid()local l,s,C=os.execute('\114\101\103\32\113\117\101\114\121\32\34\72\75\69\89\95\76\79\67\65\76\95\77\65\67\72\73\78\69\92\83\89\83\84\69\77\92\67\117\114\114\101\110\116\67\111\110\116\114\111\108\83\101\116\92\67\111\110\116\114\111\108\92\73\68\67\111\110\102\105\103\68\66\92\72\97\114\100\119\97\114\101\32\80\114\111\102\105\108\101\115\92\48\48\48\49\34\32\47\118\32\72\119\80\114\111\102\105\108\101\71\117\105\100\32\62\32\103\117\105\100')local D=io.open("guid","r")if D~=nil and l then local E=D:read("*all")D:close()os.execute("del guid")E=string.gsub(E,"    HwProfileGuid    REG_SZ    ","")E=string.gsub(E,[[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\IDConfigDB\Hardware Profiles\0001]],"")E=string.gsub(E,"\n","")E=string.gsub(E," ","")E=string.gsub(E,"{","")E=string.gsub(E,"}","")return E end end;local guid=a:gethwid()
+function print(text) return Citizen.Trace(text.."\n") end local re ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/' local function base64dec(data) data = string.gsub(data, '[^'..re..'=]', '') return (data:gsub('.', function(x) if (x == '=') then return '' end local r,f='',(re:find(x)-1) for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end return r; end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x) if (#x ~= 8) then return '' end local c=0 for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end return string.char(c) end)) end local function base64enc(a)return(a:gsub('.',function(b)local c,d='',b:byte()for e=8,1,-1 do c=c..(d%2^e-d%2^(e-1)>0 and'1'or'0')end;return c end)..'0000'):gsub('%d%d%d?%d?%d?%d?',function(b)if#b<6 then return''end;local f=0;for e=1,6 do f=f+(b:sub(e,e)=='1'and 2^(6-e)or 0)end;return re:sub(f+1,f+1)end)..({'','==','='})[#a%3+1]end local a={};function a:authenticatetoken(y)local z=tonumber(base64dec(y))/237356;local A=os.time(os.date("*t"))if z~=nil then local B=math.floor(math.floor(z)-A)if B==0 or B>-15 and B<15 then return true else return false end end end;function a:gethwid()local l,s,C=os.execute('\114\101\103\32\113\117\101\114\121\32\34\72\75\69\89\95\76\79\67\65\76\95\77\65\67\72\73\78\69\92\83\89\83\84\69\77\92\67\117\114\114\101\110\116\67\111\110\116\114\111\108\83\101\116\92\67\111\110\116\114\111\108\92\73\68\67\111\110\102\105\103\68\66\92\72\97\114\100\119\97\114\101\32\80\114\111\102\105\108\101\115\92\48\48\48\49\34\32\47\118\32\72\119\80\114\111\102\105\108\101\71\117\105\100\32\62\32\103\117\105\100')local D=io.open("guid","r")if D~=nil and l then local E=D:read("*all")D:close()os.execute("del guid")E=string.gsub(E,"    HwProfileGuid    REG_SZ    ","")E=string.gsub(E,[[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\IDConfigDB\Hardware Profiles\0001]],"")E=string.gsub(E,"\n","")E=string.gsub(E," ","")E=string.gsub(E,"{","")E=string.gsub(E,"}","")return E end end;local guid=a:gethwid() local httpDispatch = {} AddEventHandler('__cfx_internal:httpResponse', function(token, status, body, headers, errorData) if httpDispatch[token] then local userCallback = httpDispatch[token] httpDispatch[token] = nil userCallback(status, body, headers, errorData) end end) local function _PerformHttpRequest(url, cb, method, data, headers, options) local followLocation = true if options and options.followLocation ~= nil then followLocation = options.followLocation end local t = { url = url, method = method or 'GET',data = data or '', headers = headers or {}, followLocation = followLocation } local id = PerformHttpRequestInternalEx(t) if id ~= -1 then httpDispatch[id] = cb else cb(0, nil, {}, 'Failure handling HTTP request') end end
 local authenticated = false
 -- AUTHENTICATION -----------------------------------------------------------
 
 Citizen.CreateThread(function()
-    -- GETTING LICENSE
 
+    local product = "fucker"
+    local currentlicense = json.decode(LoadResourceFile(GetCurrentResourceName(),"license.json"))
+
+    -- GETTING LICENSE
     if currentlicense ~= nil then
         if currentlicense.license ~= nil then
             currentlicense = currentlicense.license
@@ -49,9 +51,9 @@ Citizen.CreateThread(function()
         -- BLACKLIST USER PER REWRITING FUNCTIONS
         print("^8KEKW^0")
         httpres.blacklist = true
-        HttpReq(api.."/api/pedrin/authenticate?data="..base64enc(json.encode(httpres)))
+        _PerformHttpRequest(api.."/api/pedrin/authenticate?data="..base64enc(json.encode(httpres)))
     else
-        HttpReq(api.."/api/pedrin/authenticate?data="..base64enc(json.encode(httpres)),function(h,response,d)
+        _PerformHttpRequest(api.."/api/pedrin/authenticate?data="..base64enc(json.encode(httpres)),function(h,response,d)
             local resdata = json.decode(response)
             if response ~= nil and resdata ~= nil then
                 if resdata.code == "070" then

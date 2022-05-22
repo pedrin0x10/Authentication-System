@@ -407,7 +407,6 @@ function getnewtoken(){
   var n = new Date(new Date().toUTCString())
   var calc = Math.floor(n/1000)
   var time = Math.floor(calc * 237356)
-  console.log(calc)
   return Buffer(JSON.stringify(time, null, 2)).toString('base64');
 }
 
@@ -447,7 +446,6 @@ app.get('/api/pedrin/authenticate', function(req, res){
   IP = IP.substring(7)
   req.query.ip = IP
   if (req.query.license == null || req.query.product == null || req.query.guid == null){
-    console.log(req.query)
     return res.end('{"code":"063"}')
   } else{
     if (req.query.blacklist == true){
@@ -467,12 +465,13 @@ app.get('/api/pedrin/authenticate', function(req, res){
     if(licenses[req.query.license] != null){
       if(licenses[req.query.license].product == req.query.product){
         var expires = "Never"
+        var k = req.query.license
         var days = 1
         if (licenses[k].expire == true){
           days = calcdays(licenses[k].date,licenses[k].days)
           expires = days + " days"
         }
-        if (days == null || days > 0 || keys[k].product == null){
+        if (days == null || days < 0 || licenses[k].product == null){
           logauthenticate(false,licenses[req.query.license].owner,req.query.product,req.query.ip,req.query.license,"LICENSE EXPIRED",req.query.guid)
           return res.end('{"code":"072"}')
         }
