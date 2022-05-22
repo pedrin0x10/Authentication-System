@@ -211,12 +211,72 @@ function calcdays(n,s) {
   return ret
 }
 
+client.on('interactionCreate', async interaction => {
+  if(interaction.customId == "resetdevice"){
+    var combo = []
+    var keys = licenses
+    driscord[String(interaction.user.id)].forEach(function(k) {
+      var expires = "Never"
+      if (keys[k].expire == true){
+        var days = calcdays(keys[k].date,keys[k].days)
+        expires = days + " days"
+      }
+      keyip = keys[k].ip
+      if (keyip == "standby")
+      keyip = ""
+
+      keyhw = keys[k].hwid
+      if (keyhw == "standby")
+      keyhw = ""
+
+      if ((days == null || days > 0) && keys[k].product != null){
+
+        var currlicense = {
+          label: keys[k].product,
+          description: 'Current IP: '+keyip+', License: '+k,
+          value: k,
+        }
+        combo.push(currlicense)
+      }
+    })
+    const row = new Discord.MessageActionRow().addComponents(
+      new Discord.MessageSelectMenu()
+      .setCustomId('lcsreseter')
+      .setPlaceholder('Select the license you want to reset')
+      .setMinValues(1)
+      .setMaxValues(1)
+      .addOptions(combo),
+    );
+		await interaction.reply({ content: 'Select the license you want to reset', components: [row], ephemeral: true });
+	}
+  if(interaction.customId == "lcsreseter"){
+    interaction.values.forEach(function(val) {
+      if(licenses[val].ip != "standby" || licenses[val].hwid != "standby"){
+        var embed = new Discord.MessageEmbed()
+        .setTitle(`Log Resets`)
+        .setColor('#2F3136')
+        .addField("Product: ","``"+licenses[val].product+"``")
+        .addField("Cliente: ","<@!"+licenses[val].owner+">")
+        .addField("License: ","``"+val+"``")
+        .addField("IP: ","``"+licenses[val].ip+"``")
+        .addField("HWID: ","``"+licenses[val].hwid+"``")
+        .setTimestamp(new Date())
+        .setFooter("Storm")
+        licenses[val].ip = "standby"
+        licenses[val].hwid = "standby"
+        update("database/users.json", licenses)
+        client.channels.cache.get(config.logresets).send({ embeds: [embed] })
+        interaction.reply({ content: 'License devices id has been reseted !', ephemeral: true });
+      }else{
+        interaction.reply({ content: 'This license is already reseted !', ephemeral: true });
+      }
+    })
+  }
+});
+
 client.on('interactionCreate', async (button) => {
   if (!button.isButton()) return;
-  if(button.customId == "resetdevice"){
-    resets[String(button.user.id)] = true 
-    button.reply({ content: 'Please enter the license below !', ephemeral: true});
-  }else if(button.customId == "getinfos"){
+  if(button.customId == "getinfos"){
     if(driscord[String(button.user.id)] == null)
     return button.reply({content: "You don't have any license !", ephemeral: true});
     var products = ""
