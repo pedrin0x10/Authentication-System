@@ -37,6 +37,7 @@ client.on('message', (message) => {
     if (genlcs[String(message.author.id)] == true){
       if (message.content != null)
       generatelcs(message)
+      return message.delete()
     } else{
       return message.delete()
     }
@@ -48,10 +49,8 @@ client.on('interactionCreate', async (button) => {
     var combo = []
     var keys = licenses
     driscord[String(button.user.id)].forEach(function(k) {
-      var expires = "Never"
       if (keys[k].expire == true){
         var days = calcdays(keys[k].date,keys[k].days)
-        expires = days + " days"
       }
       keyip = keys[k].ip
       if (keyip == "standby")
@@ -159,8 +158,29 @@ client.on('interactionCreate', async (button) => {
 		modal.addComponents(firstActionRow);
 		await button.showModal(modal);
   }else if(button.customId == "genlicense"){
-    genlcs[String(button.user.id)] = true 
-    button.reply({ content:"Enter below: <@user> <product> <days (optional)>", ephemeral: true});
+    const modal = new Discord.Modal()
+			.setCustomId('mgenlicense')
+			.setTitle('Generate license');
+		const favoriteColorInput = new Discord.TextInputComponent()
+			.setCustomId('userid')
+			.setLabel("Discord ID from user:")
+			.setStyle('SHORT')
+      .setRequired(true);
+    const product = new Discord.TextInputComponent()
+      .setCustomId('product')
+      .setLabel("Product name:")
+      .setStyle('SHORT')
+      .setRequired(true);
+    const days = new Discord.TextInputComponent()
+      .setCustomId('days')
+      .setLabel("Days to expire:")
+      .setStyle('SHORT')
+      .setRequired(false);
+		const firstActionRow = new Discord.MessageActionRow().addComponents(favoriteColorInput);
+    const secondActionRow = new Discord.MessageActionRow().addComponents(product);
+    const thirdActionRow = new Discord.MessageActionRow().addComponents(days);
+		modal.addComponents(firstActionRow,secondActionRow,thirdActionRow);
+		await button.showModal(modal);
   } else if(button.customId == "deletelicense"){
     const modal = new Discord.Modal()
 			.setCustomId('mdeletelicense')
@@ -214,8 +234,52 @@ client.on('interactionCreate', async (button) => {
     .addField(`HWID: `, "``"+keyhw+"``")
     .setColor('#2F3136')
     button.reply({embeds: [embed], ephemeral: true});
+  }else if(button.customId == "mgenlicense"){
+    var prodname = button.fields.getTextInputValue('product')
+    var person = button.fields.getTextInputValue('userid')
+    var days = button.fields.getTextInputValue('days')
+    var expiration = "Never"
+    key = makeid(50)
+    licenses[key] = {}
+    licenses[key].product = prodname
+    licenses[key].ip = "standby"
+    licenses[key].hwid = "standby"
+    licenses[key].owner = person
+    var vral = isNumeric(days)
+    if(days != null && days != "" && days != " " && vral == true){
+      licenses[key].expire = true
+      licenses[key].days = days;
+      licenses[key].date = Math.floor(new Date().getTime() / 1000);
+      expiration = days + " days"
+    }
+    var licensesarr = driscord[person]
+    if (licensesarr == null)
+    licensesarr=[]
+    licensesarr.push(key)
+    driscord[person] = licensesarr
+    update("database/users.json", licenses)
+    update("database/discord.json", driscord)
+    var embed = new Discord.MessageEmbed()
+    .setTitle(`New Product\n`)
+    .addField(`User: `, `<@!${person}>`)
+    .addField(`License: `, "``"+key+"``")
+    .addField(`Product: `, "``"+prodname+"``")
+    .addField(`Expires: `, "``"+expiration+"``")
+    .setColor('#2F3136')
+    button.reply({content:"Key sent in client's private !", ephemeral: true})
+    try{
+    await client.users.fetch(person, false).then((user) => {
+      user.send({embeds: [embed]});
+    })
+    }catch{}
   }
 })
+
+function isNumeric(str) {
+  if (typeof str != "string") return false // we only process strings!  
+  return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+         !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
+}
 
 function asyncintegrations(){
   client.channels.cache.get(config.integrations).bulkDelete(100).catch(() => console.error)
@@ -288,46 +352,6 @@ function makeid(length) {
   var charactersLength = characters.length;
   for ( var i = 0; i < length; i++ ) {result += characters.charAt(Math.floor(Math.random() * charactersLength));}
   return result;
-}
-
-function generatelcs(message){
-  genlcs[String(message.author.id)] = null
-  var args = message.content.trim().split(/ +/g);
-  if (args[0] == null || args[1] == null)
-  return message.channel.send({content:"<@user> <product> <days (optional)>", ephemeral: true})
-  var person = message.mentions.members.first()
-  if(person == null)
-  return message.channel.send({content:"Failed to search for user !", ephemeral: true})
-  person = person.user.id
-  var expiration = "Never"
-  key = makeid(50)
-  licenses[key] = {}
-  licenses[key].product = args[1]
-  licenses[key].ip = "standby"
-  licenses[key].hwid = "standby"
-  licenses[key].owner = person
-  if(args[2] != null ){
-    licenses[key].expire = true
-    licenses[key].days = args[2];
-    licenses[key].date = Math.floor(new Date().getTime() / 1000);
-    expiration = args[2] + " days"
-  }
-  var licensesarr = driscord[message.mentions.members.first().user.id]
-  if (licensesarr == null)
-  licensesarr=[]
-  licensesarr.push(key)
-  driscord[message.mentions.members.first().user.id] = licensesarr
-  update("database/users.json", licenses)
-  update("database/discord.json", driscord)
-  var embed = new Discord.MessageEmbed()
-  .setTitle(`New Product\n`)
-  .addField(`User: `, `<@!${person}>`)
-  .addField(`License: `, "``"+key+"``")
-  .addField(`Product: `, "``"+args[1]+"``")
-  .addField(`Expires: `, "``"+expiration+"``")
-  .setColor('#2F3136')
-  message.mentions.members.first().send({embeds: [embed]});
-  message.channel.send({content:"Key sent in client's private !", ephemeral: true})
 }
 
 function getnewtoken(){
