@@ -248,7 +248,7 @@ client.on('interactionCreate', async interaction => {
       .setMaxValues(1)
       .addOptions(combo),
     );
-		await interaction.reply({ content: 'Select the license you want to reset', components: [row], ephemeral: true });
+		await interaction.reply({ content: '  ', components: [row], ephemeral: true });
 	}
   if(interaction.customId == "lcsreseter"){
     interaction.values.forEach(function(val) {
