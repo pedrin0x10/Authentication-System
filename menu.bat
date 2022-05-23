@@ -1,8 +1,4 @@
 @echo off
-
-cls
+:main
 node .
-pause . > nul
-
-
-
+goto main
