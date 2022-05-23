@@ -86,7 +86,7 @@ client.on("interactionCreate", async (button) => {
                .addField("IP: ", "``" + licenses[val].ip + "``")
                .addField("HWID: ", "``" + licenses[val].hwid + "``")
                .setTimestamp(new Date())
-               .setFooter("Storm");
+               .setFooter(config.storename);
             licenses[val].ip = "standby";
             licenses[val].hwid = "standby";
             update("database/users.json", licenses);
@@ -103,12 +103,14 @@ client.on("interactionCreate", async (button) => {
       const logsreset = new Discord.TextInputComponent().setCustomId("channelreset").setLabel("CHANNEL ID FOR RESET DEVICES LOG:").setStyle("SHORT");
       const logsauth = new Discord.TextInputComponent().setCustomId("channelauth").setLabel("CHANNEL ID FOR AUTHENTICATION LOG:").setStyle("SHORT");
       const logsnauth = new Discord.TextInputComponent().setCustomId("channelnauth").setLabel("CHANNEL ID FOR FAILED AUTHENTICATION LOG:").setStyle("SHORT");
+      const storename = new Discord.TextInputComponent().setCustomId("storename").setLabel("NAME OF YOUR STORE:").setStyle("SHORT");
       const firstActionRow = new Discord.MessageActionRow().addComponents(adm);
       const secondActionRow = new Discord.MessageActionRow().addComponents(costumers);
       const thirdActionRow = new Discord.MessageActionRow().addComponents(logsreset);
       const fourthActionRow = new Discord.MessageActionRow().addComponents(logsauth);
       const fifthdActionRow = new Discord.MessageActionRow().addComponents(logsnauth);
-      modal.addComponents(firstActionRow, secondActionRow, thirdActionRow, fourthActionRow, fifthdActionRow);
+      const sixthActionRow = new Discord.MessageActionRow().addComponents(storename);
+      modal.addComponents(firstActionRow, secondActionRow, thirdActionRow, fourthActionRow, fifthdActionRow, sixthActionRow);
       button.showModal(modal);
    } else if (button.customId == "mconfigurate") {
       var admintegrations = button.fields.getTextInputValue("channeladm");
@@ -116,11 +118,13 @@ client.on("interactionCreate", async (button) => {
       var resetlogs = button.fields.getTextInputValue("channelreset");
       var authlogs = button.fields.getTextInputValue("channelauth");
       var nonauthlogs = button.fields.getTextInputValue("channelnauth");
+      var storename = button.fields.getTextInputValue("storename");
       config.logautenticado = authlogs;
       config.lognaoautenticado = nonauthlogs;
       config.logresets = resetlogs;
       config.integrations = costumersintegrations;
       config.admintegrations = admintegrations;
+      config.storename = storename;
       update("config.json", config);
       asyncintegrations();
       button.reply({ content: "Channel configs has been updated !", ephemeral: true });
@@ -465,7 +469,7 @@ async function logauthenticate(auth, id, script, ip, license, motivo, hwid, expi
          .addField("IP: ", "``" + ip + "``")
          .addField("HWID: ", "``" + hwid + "``")
          .setTimestamp(new Date())
-         .setFooter("Storm");
+         .setFooter(config.storename);
       try {
          await client.channels.cache.get(config.logautenticado).send({ embeds: [embed] });
       } catch {}
@@ -478,7 +482,7 @@ async function logauthenticate(auth, id, script, ip, license, motivo, hwid, expi
          .addField("IP: ", "``" + ip + "``")
          .addField("HWID: ", "``" + hwid + "``")
          .addField("Reason: ", "``" + motivo + "``")
-         .setFooter("Storm")
+         .setFooter(config.storename)
          .setTimestamp(new Date());
       try {
          await client.channels.cache.get(config.lognaoautenticado).send({ embeds: [embed] });

@@ -16,7 +16,7 @@ end
 ]] 
 
 -- CONFIG -----------------------------------------------------------
-local api = "localhost" -- IP DA API CASO VA USAR UMA PORTA DIFERENTE DA 80 COLOQUE IP:PORTA OU DOMINIO.COM:PORTA ex: 1.1.1.1:5454 ou gooogle.com:5454
+local api = "http://api.pedrin.xyz" -- IP DA API CASO VA USAR UMA PORTA DIFERENTE DA 80 COLOQUE IP:PORTA OU DOMINIO.COM:PORTA ex: 1.1.1.1:5454 ou gooogle.com:5454
 local product = "fucker"
 local currentlicense = json.decode(LoadResourceFile(GetCurrentResourceName(),"license.json"))
 -- IGNORE---------------------------------------------------------------------
