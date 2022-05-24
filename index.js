@@ -44,7 +44,7 @@ async function sendresetlog(embed) {
   } catch {}
 }
 
-async function isNumeric(str) {
+function isNumeric(str) {
   if (typeof str != "string") return false;
   return !isNaN(str) && !isNaN(parseFloat(str));
 }
@@ -84,13 +84,13 @@ async function asyncintegrations() {
   console.log("Bot e HTTP Server estao ONLINE!");
 }
 
-async function calcdays(n, s) {
+function calcdays(n, s) {
   var today = new Date(new Date().toUTCString()) / 1000;
   var calc = (n - today) / 60000 + parseInt(s);
   return Math.floor(calc);
 }
 
-async function makeid(length) {
+function makeid(length) {
   var result = "";
   var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   var charactersLength = characters.length;
@@ -100,14 +100,14 @@ async function makeid(length) {
   return result;
 }
 
-async function getnewtoken() {
+function getnewtoken() {
   var n = new Date(new Date().toUTCString());
   var calc = Math.floor(n / 1000);
   var time = Math.floor(calc * 237356);
   return Buffer(JSON.stringify(time, null, 2)).toString("base64");
 }
 
-async function isJsonString(str) {
+function isJsonString(str) {
   try {
     JSON.parse(str);
   } catch (e) {
@@ -116,7 +116,7 @@ async function isJsonString(str) {
   return true;
 }
 
-async function parseseconds(utc) {
+function parseseconds(utc) {
   var n = new Date(new Date().toUTCString());
   var calc = Math.floor(n / 1000) - utc;
   if (calc == 0 || (calc > -50 && calc < 50)) {
