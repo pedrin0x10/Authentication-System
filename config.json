@@ -1,10 +1,5 @@
 {
-  "token" :"ODkwMzk1NTAxNTU4NjUyOTYw.GSUCRh.9nHKBPQ3QtFl_lECg5IRgj1JSUWsAHTWbPGKBY",
-  "port":"5006",
-  "storename":"Haze Store",
-  "logresets":"978112159215136768",
-  "logautenticado":"974735854058758235",
-  "lognaoautenticado":"974735937571545109",
-  "integrations":"978112771931652106",
-  "admintegrations":"978112368779358228"
+  "token" :"",
+  "port":"80",
+  "storename":"Pedrin"
 }
