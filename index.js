@@ -32,13 +32,10 @@ client.on("message", (message) => {
       const row2 = new Discord.MessageActionRow().addComponents(new Discord.MessageButton().setCustomId("configurate").setLabel("CONFIGURATE").setStyle("SUCCESS"));
       message.reply({ content: "Click in the button to configurate the bot", components: [row2] });
    }
+   if (message.content == "/configurate") {
+      asyncintegrations();
+   }
 });
-
-async function sendresetlog(embed) {
-   try {
-      await client.channels.cache.get(config.logresets).send({ embeds: [embed] });
-   } catch {}
-}
 
 client.on("interactionCreate", async (button) => {
    const licenses = require("./database/users.json");
@@ -277,7 +274,7 @@ client.on("interactionCreate", async (button) => {
          }
       });
 
-      if (products == "") products = "All your licenses are expired";
+      if (products == "") products = "All licenses from this user are expired";
       var embed = new Discord.MessageEmbed()
          .setTitle("User Licenses")
          .addField("User: ", "<@!" + person + ">")
@@ -286,6 +283,22 @@ client.on("interactionCreate", async (button) => {
       button.reply({ embeds: [embed], ephemeral: true });
    }
 });
+
+client.on("ready", () => {
+   console.clear();
+   client.user.setStatus("online");
+   console.log("Bot e HTTP Server estao ONLINE!");
+   setInterval(() => {
+      console.clear();
+      console.log("Bot e HTTP Server estao ONLINE!");
+   }, 60000);
+});
+
+async function sendresetlog(embed) {
+   try {
+      await client.channels.cache.get(config.logresets).send({ embeds: [embed] });
+   } catch {}
+}
 
 function isNumeric(str) {
    if (typeof str != "string") return false;
@@ -326,15 +339,6 @@ async function asyncintegrations() {
    console.clear();
    console.log("Bot e HTTP Server estao ONLINE!");
 }
-
-client.on("ready", () => {
-   console.log("Bot e HTTP Server estao ONLINE!");
-   client.user.setStatus("online");
-   asyncintegrations();
-   setInterval(() => {
-      asyncintegrations();
-   }, 24 * 60 * 60 * 1000);
-});
 
 function calcdays(n, s) {
    var today = new Date(new Date().toUTCString()) / 1000;
