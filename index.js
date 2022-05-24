@@ -103,14 +103,12 @@ client.on("interactionCreate", async (button) => {
       const logsreset = new Discord.TextInputComponent().setCustomId("channelreset").setLabel("CHANNEL ID FOR RESET DEVICES LOG:").setStyle("SHORT");
       const logsauth = new Discord.TextInputComponent().setCustomId("channelauth").setLabel("CHANNEL ID FOR AUTHENTICATION LOG:").setStyle("SHORT");
       const logsnauth = new Discord.TextInputComponent().setCustomId("channelnauth").setLabel("CHANNEL ID FOR FAILED AUTHENTICATION LOG:").setStyle("SHORT");
-      const storename = new Discord.TextInputComponent().setCustomId("storename").setLabel("NAME OF YOUR STORE:").setStyle("SHORT");
       const firstActionRow = new Discord.MessageActionRow().addComponents(adm);
       const secondActionRow = new Discord.MessageActionRow().addComponents(costumers);
       const thirdActionRow = new Discord.MessageActionRow().addComponents(logsreset);
       const fourthActionRow = new Discord.MessageActionRow().addComponents(logsauth);
       const fifthdActionRow = new Discord.MessageActionRow().addComponents(logsnauth);
-      const sixthActionRow = new Discord.MessageActionRow().addComponents(storename);
-      modal.addComponents(firstActionRow, secondActionRow, thirdActionRow, fourthActionRow, fifthdActionRow, sixthActionRow);
+      modal.addComponents(firstActionRow, secondActionRow, thirdActionRow, fourthActionRow, fifthdActionRow);
       button.showModal(modal);
    } else if (button.customId == "mconfigurate") {
       var admintegrations = button.fields.getTextInputValue("channeladm");
@@ -118,13 +116,11 @@ client.on("interactionCreate", async (button) => {
       var resetlogs = button.fields.getTextInputValue("channelreset");
       var authlogs = button.fields.getTextInputValue("channelauth");
       var nonauthlogs = button.fields.getTextInputValue("channelnauth");
-      var storename = button.fields.getTextInputValue("storename");
       config.logautenticado = authlogs;
       config.lognaoautenticado = nonauthlogs;
       config.logresets = resetlogs;
       config.integrations = costumersintegrations;
       config.admintegrations = admintegrations;
-      config.storename = storename;
       update("config.json", config);
       asyncintegrations();
       button.reply({ content: "Channel configs has been updated !", ephemeral: true });
