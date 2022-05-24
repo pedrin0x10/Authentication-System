@@ -1,12 +1,10 @@
 {
-  "token": "ODkwNzI1MzQ5NzY2MzY1MTk0.G_w6Kv.upVzpEIFl7ECJVXYDc7GVzwy5ouR9DKEaT7I_o",
-  "port": "80",
-  "logautenticado": "978401924963512350",
-  "lognaoautenticado": "",
-  "logresets": "",
-  "integrations": "",
-  "admintegrations": "",
-  "products": {
-    "Deixe isso sem nada(era apenas teste)": ""
-  }
+  "token" :"ODkwMzk1NTAxNTU4NjUyOTYw.GSUCRh.9nHKBPQ3QtFl_lECg5IRgj1JSUWsAHTWbPGKBY",
+  "port":"5006",
+  "storename":"Haze Store",
+  "logresets":"978112159215136768",
+  "logautenticado":"974735854058758235",
+  "lognaoautenticado":"974735937571545109",
+  "integrations":"978112771931652106",
+  "admintegrations":"978112368779358228"
 }
