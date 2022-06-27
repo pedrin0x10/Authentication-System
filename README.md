@@ -1,6 +1,6 @@
 #Authentication-System
 
-[![Watch the video]()](https://streamable.com/2cid2a)
+[![Watch the video](https://www.gratispng.com/png-3zqbgo/)](https://streamable.com/2cid2a)
 
 * Put the bot token inside config.json file
 * Install discord.js and express library using npm i
