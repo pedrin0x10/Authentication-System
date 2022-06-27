@@ -1,5 +1,7 @@
 #Authentication-System
 
+![alt text](https://streamable.com/2cid2a)
+
 * Put the bot token inside config.json file
 * Install discord.js and express library using npm i
 * Start the bot using node .
