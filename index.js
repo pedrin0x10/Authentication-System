@@ -74,7 +74,7 @@ async function asyncintegrations() {
     new Discord.MessageButton().setCustomId("genlicense").setLabel("GENERATE LICENSE").setStyle("SUCCESS"),
     new Discord.MessageButton().setCustomId("getlicenseinfo").setLabel("GET LICENSE INFO").setStyle("SUCCESS"),
     new Discord.MessageButton().setCustomId("getuserlicenses").setLabel("GET USER LICENSES").setStyle("SUCCESS"),
-    new Discord.MessageButton().setCustomId("unblacklisthw").setLabel("UNBLACKLIST HWID").setStyle("DANGER"),
+    new Discord.MessageButton().setCustomId("unblacklisthw").setLabel("UNBLACKLIST IP").setStyle("DANGER"),
     new Discord.MessageButton().setCustomId("deletelicense").setLabel("DELETE LICENSE").setStyle("DANGER")
   );
   try {
@@ -272,8 +272,8 @@ client.on("interactionCreate", async (button) => {
     var embed = new Discord.MessageEmbed().setTitle("Your Products").setDescription(products).setColor("#2F3136");
     button.reply({ embeds: [embed], ephemeral: true });
   } else if (button.customId == "unblacklisthw") {
-    const modal = new Discord.Modal().setCustomId("munblacklisthw").setTitle("Unblacklist HARDWARE ID");
-    const favoriteColorInput = new Discord.TextInputComponent().setCustomId("hwid").setLabel("Enter Hardware ID:").setStyle("SHORT");
+    const modal = new Discord.Modal().setCustomId("munblacklisthw").setTitle("Unblacklist IP adress");
+    const favoriteColorInput = new Discord.TextInputComponent().setCustomId("hwid").setLabel("Enter IP adress:").setStyle("SHORT");
     const firstActionRow = new Discord.MessageActionRow().addComponents(favoriteColorInput);
     modal.addComponents(firstActionRow);
     await button.showModal(modal);
@@ -308,7 +308,7 @@ client.on("interactionCreate", async (button) => {
   } else if (button.customId == "munblacklisthw") {
     guidbl[button.fields.getTextInputValue("hwid")] = null;
     update("database/gblacklist.json", guidbl);
-    button.reply({ content: "HWID removed from blacklist !", ephemeral: true });
+    button.reply({ content: "IP removed from blacklist !", ephemeral: true });
   } else if (button.customId == "mdeletelicense") {
     if (licenses[button.fields.getTextInputValue("license")] == null) return button.reply({ content: "License not found !", ephemeral: true });
     licenses[button.fields.getTextInputValue("license")].product = null;
