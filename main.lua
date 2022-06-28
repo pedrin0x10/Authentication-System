@@ -81,6 +81,9 @@ Citizen.CreateThread(function()
                 elseif resdata.code == "065" then
                     -- LICENSE DOES NOT EXIST
                     print("^1Failed to authenticate, license does not found in database !^0")
+                elseif resdata.code == "093" then
+                    -- HWID NULLED (possible os.execute not working)
+                    print("^1Failed to authenticate, HWID not found !^0")
                 elseif resdata.code == "064" then
                     -- INVALID REQUEST TOKEN
                     print("^1Failed to authenticate, invalid request code !^0")
