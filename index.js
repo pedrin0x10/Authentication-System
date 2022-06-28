@@ -427,9 +427,14 @@ app.get("/api/pedrin/authenticate", function (req, res) {
   var query = Buffer.from(req.query.data, "base64").toString("utf-8");
   if (query == null || !isJsonString(query)) return res.end('{"code":"061"}');
   req.query = JSON.parse(query);
-  var IP = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-  IP = IP.substring(7);
-  req.query.ip = IP;
+  if(req.headers['cf-connecting-ip'] == undefined){
+    var IP = req.socket.remoteAddress;
+    IP = IP.substring(7);
+    req.query.ip = IP;
+  }else{
+    var IP = req.headers['cf-connecting-ip'];
+    req.query.ip = IP;
+  }
   if (req.query.license == null || req.query.product == null || req.query.guid == null) {
     return res.end('{"code":"063"}');
   } else {
