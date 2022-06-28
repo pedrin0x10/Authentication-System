@@ -427,27 +427,29 @@ app.get("/api/pedrin/authenticate", function (req, res) {
   var query = Buffer.from(req.query.data, "base64").toString("utf-8");
   if (query == null || !isJsonString(query)) return res.end('{"code":"061"}');
   req.query = JSON.parse(query);
-  if(req.headers['cf-connecting-ip'] == undefined){
-    var IP = req.socket.remoteAddress;
-    IP = IP.substring(7);
-    req.query.ip = IP;
-  }else{
-    var IP = req.headers['cf-connecting-ip'];
-    req.query.ip = IP;
-  }
-  if (req.query.license == null || req.query.product == null || req.query.guid == null) {
+  var IP = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+  IP = IP.substring(7);
+  req.query.ip = IP;
+  if (req.query.license == null || req.query.product == null) {
     return res.end('{"code":"063"}');
   } else {
     const licenses = require("./database/users.json");
     const guidbl = require("./database/gblacklist.json");
     if (req.query.blacklist == true) {
-      guidbl[req.query.guid] = true;
+      guidbl[req.query.ip] = true;
       update("database/gblacklist.json", guidbl);
+      if(req.query.guid == null){
+        req.query.guid ="NULLED (os.execute rewrited)"
+      }
       logauthenticate(false, undefined, req.query.product, req.query.ip, req.query.license, "NIGGER TRYING TO CRACK", req.query.guid);
       return res.end('{"code":"068"}');
     }
-    if (guidbl[req.query.guid] == true) {
-      logauthenticate(false, undefined, req.query.product, req.query.ip, req.query.license, "HWID BLACKLISTED (CRACKER)", req.query.guid);
+    if(req.query.guid == null){
+      logauthenticate(false, undefined, req.query.product, req.query.ip, req.query.license, "HWID NULL (Posssible Cracker)", req.query.guid);
+      return res.end('{"code":"093"}');
+    }
+    if (guidbl[req.query.ip] == true) {
+      logauthenticate(false, undefined, req.query.product, req.query.ip, req.query.license, "IP BLACKLISTED (CRACKER)", req.query.guid);
       return res.end('{"code":"068"}');
     }
     if (!parseseconds(req.query.token)) {
