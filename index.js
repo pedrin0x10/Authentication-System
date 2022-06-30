@@ -3,8 +3,22 @@ const fs = require("fs");
 const http = require("http");
 const express = require("express");
 const config = require("./config.json");
+require('events').EventEmitter.prototype._maxListeners = 10
+const rateLimit = require("express-rate-limit");
+const { createGzip } = require("zlib");
+
+const limiter = rateLimit({ max: 100, windowMs: 5 * 60 * 1000, message: `{"code":"067","response":"Rate-Limit Please wait some minutes"}`});
 
 const app = express();
+  
+app.use(limiter);
+app.disable('x-powered-by');
+
+async function sendmsg(channel,msg) {
+  try{
+    await client.channels.cache.get(channel).send(msg)
+  }catch{}
+}
 
 const Client = class extends Discord.Client {
   constructor(config) {
@@ -220,18 +234,20 @@ client.on("interactionCreate", async (button) => {
       }
     });
   } else if (button.customId == "configurate") {
-    const modal = new Discord.Modal().setCustomId("mconfigurate").setTitle("Generate license");
+    const modal = new Discord.Modal().setCustomId("mconfigurate").setTitle("Configurate System");
     const adm = new Discord.TextInputComponent().setCustomId("channeladm").setLabel("CHANNEL ID FOR LICENSE MANAGEMENT:").setStyle("SHORT");
     const costumers = new Discord.TextInputComponent().setCustomId("channelcostum").setLabel("CHANNEL ID FOR COSTUMERS MANAGEMENT:").setStyle("SHORT");
     const logsreset = new Discord.TextInputComponent().setCustomId("channelreset").setLabel("CHANNEL ID FOR RESET DEVICES LOG:").setStyle("SHORT");
     const logsauth = new Discord.TextInputComponent().setCustomId("channelauth").setLabel("CHANNEL ID FOR AUTHENTICATION LOG:").setStyle("SHORT");
     const logsnauth = new Discord.TextInputComponent().setCustomId("channelnauth").setLabel("CHANNEL ID FOR FAILED AUTHENTICATION LOG:").setStyle("SHORT");
+    const backup = new Discord.TextInputComponent().setCustomId("backupchannel").setLabel("CHANNEL ID FOR DATABASE BACKUP:").setStyle("SHORT");
     const firstActionRow = new Discord.MessageActionRow().addComponents(adm);
     const secondActionRow = new Discord.MessageActionRow().addComponents(costumers);
     const thirdActionRow = new Discord.MessageActionRow().addComponents(logsreset);
     const fourthActionRow = new Discord.MessageActionRow().addComponents(logsauth);
     const fifthdActionRow = new Discord.MessageActionRow().addComponents(logsnauth);
-    modal.addComponents(firstActionRow, secondActionRow, thirdActionRow, fourthActionRow, fifthdActionRow);
+    const sixthdActionRow = new Discord.MessageActionRow().addComponents(backup);
+    modal.addComponents(firstActionRow, secondActionRow, thirdActionRow, fourthActionRow, fifthdActionRow,sixthdActionRow);
     button.showModal(modal);
   } else if (button.customId == "mconfigurate") {
     var admintegrations = button.fields.getTextInputValue("channeladm");
@@ -239,11 +255,13 @@ client.on("interactionCreate", async (button) => {
     var resetlogs = button.fields.getTextInputValue("channelreset");
     var authlogs = button.fields.getTextInputValue("channelauth");
     var nonauthlogs = button.fields.getTextInputValue("channelnauth");
+    var backup = button.fields.getTextInputValue("backupchannel");
     config.logautenticado = authlogs;
     config.lognaoautenticado = nonauthlogs;
     config.logresets = resetlogs;
     config.integrations = costumersintegrations;
     config.admintegrations = admintegrations;
+    config.backupdb = backup;
     update("config.json", config);
     asyncintegrations();
     button.reply({ content: "Channel configs has been updated !", ephemeral: true });
@@ -308,7 +326,7 @@ client.on("interactionCreate", async (button) => {
   } else if (button.customId == "munblacklisthw") {
     guidbl[button.fields.getTextInputValue("hwid")] = null;
     update("database/gblacklist.json", guidbl);
-    button.reply({ content: "IP removed from blacklist !", ephemeral: true });
+    button.reply({ content: "HWID removed from blacklist !", ephemeral: true });
   } else if (button.customId == "mdeletelicense") {
     if (licenses[button.fields.getTextInputValue("license")] == null) return button.reply({ content: "License not found !", ephemeral: true });
     licenses[button.fields.getTextInputValue("license")].product = null;
@@ -345,7 +363,7 @@ client.on("interactionCreate", async (button) => {
     var prodname = button.fields.getTextInputValue("product");
     var person = button.fields.getTextInputValue("userid");
     var days = button.fields.getTextInputValue("days");
-    var expiration = "Never";
+    var expiration = "``Never``";
     key = makeid(50);
     licenses[key] = {};
     licenses[key].product = prodname;
@@ -357,7 +375,7 @@ client.on("interactionCreate", async (button) => {
       licenses[key].expire = true;
       licenses[key].days = days;
       licenses[key].date = Math.floor(new Date().getTime() / 1000);
-      expiration = days + " days";
+      expiration = "<t:"+(parseInt(licenses[key].date) + (parseInt(licenses[key].days) * 24*60*60))+":R>"
     }
     var licensesarr = driscord[person];
     if (licensesarr == null) licensesarr = [];
@@ -370,7 +388,7 @@ client.on("interactionCreate", async (button) => {
       .addField(`User: `, `<@!${person}>`)
       .addField(`License: `, "``" + key + "``")
       .addField(`Product: `, "``" + prodname + "``")
-      .addField(`Expires: `, "``" + expiration + "``")
+      .addField(`Expires: `,expiration)
       .setColor("#2F3136");
     button.reply({ content: "Key sent in client's private !", ephemeral: true });
     try {
@@ -410,19 +428,91 @@ client.on("interactionCreate", async (button) => {
   }
 });
 
+function getDateTime() {
+  var date = new Date();
+  var hour = date.getHours();
+  hour = (hour < 10 ? "0" : "") + hour;
+  var min  = date.getMinutes();
+  min = (min < 10 ? "0" : "") + min;
+  var sec  = date.getSeconds();
+  sec = (sec < 10 ? "0" : "") + sec;
+  var year = date.getFullYear();
+  var month = date.getMonth() + 1;
+  month = (month < 10 ? "0" : "") + month;
+  var day  = date.getDate();
+  day = (day < 10 ? "0" : "") + day;
+  return year + "-" + month + "-" + day + " " + hour + "-" + min + "-" + sec;
+}
+
+async function backup(){
+  if (config.backupdb != null && config.backupdb != ""){
+    var stream = fs.createReadStream("./database/users.json");
+    stream
+      .pipe(createGzip())
+      .pipe(fs.createWriteStream(`./users.json.gz`))
+      .on("finish", () =>
+        sendmsg(config.backupdb,
+          {
+            content:"Backup released at: "+new Date(),
+            files: [
+              {
+                attachment: "./users.json.gz",
+                name: getDateTime()+'_users.json.gz'
+              }
+            ]
+          }
+        )
+      );
+    var stream = fs.createReadStream("./database/discord.json");
+    stream
+      .pipe(createGzip())
+      .pipe(fs.createWriteStream(`./discord.json.gz`))
+      .on("finish", () =>
+        sendmsg(config.backupdb,
+          {
+            content:"Backup released at: "+new Date(),
+            files: [
+              {
+                attachment: "./discord.json.gz",
+                name: getDateTime()+'_discord.json.gz'
+              }
+            ]
+          }
+        )
+      );
+    var stream = fs.createReadStream("./database/gblacklist.json");
+    stream
+      .pipe(createGzip())
+      .pipe(fs.createWriteStream(`./gblacklist.json.gz`))
+      .on("finish", () =>
+        sendmsg(config.backupdb,
+          {
+            content:"Backup released at: "+new Date(),
+            files: [
+              {
+                attachment: "./gblacklist.json.gz",
+                name: getDateTime()+'_gblacklist.json.gz'
+              }
+            ]
+          }
+        )
+      );
+  }
+}
+
 client.on("ready", () => {
   console.clear();
   client.user.setStatus("online");
   console.log("Bot e HTTP Server estao ONLINE!");
+  backup();
   setInterval(() => {
-    console.clear();
-    console.log("Bot e HTTP Server estao ONLINE!");
-  }, 60000);
+    backup();
+  }, 15*60000);
 });
 
 app.get("/api/pedrin/authenticate", function (req, res) {
   var ua = req.headers["user-agent"];
-  if (ua == "Microsoft-CryptoAPI/10.0") return res.end("INVALID USER-AGENT");
+  if (ua != "FXServer/PerformHttpRequest") return res.end("INVALID REQUEST AGENT");
   if (req.query.data == null) return res.end('{"code":"063"}');
   var query = Buffer.from(req.query.data, "base64").toString("utf-8");
   if (query == null || !isJsonString(query)) return res.end('{"code":"061"}');
@@ -499,6 +589,10 @@ app.get("/api/pedrin/authenticate", function (req, res) {
     }
   }
 });
+
+app.get("/", function (req, res) {
+  res.end("Pedrin's API - 404 NOT FOUND")
+})
 
 http.createServer(app).listen(config.port, function () {
   client.login(config.token);
