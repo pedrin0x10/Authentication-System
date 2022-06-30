@@ -7,7 +7,7 @@ require('events').EventEmitter.prototype._maxListeners = 10
 const rateLimit = require("express-rate-limit");
 const { createGzip } = require("zlib");
 
-const limiter = rateLimit({ max: 100, windowMs: 5 * 60 * 1000, message: `{"code":"067","response":"Rate-Limit Please wait some minutes"}`});
+const limiter = rateLimit({ max: 100, windowMs: 5 * 60 * 1000, message: `{"code":"047","response":"Rate-Limit Please wait some minutes"}`});
 
 const app = express();
   
