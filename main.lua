@@ -87,6 +87,9 @@ Citizen.CreateThread(function()
                 elseif resdata.code == "064" then
                     -- INVALID REQUEST TOKEN
                     print("^1Failed to authenticate, invalid request code !^0")
+                elseif resdata.code == "064" then
+                    -- RATE LIMIT
+                    print("^1Failed to authenticate, Rate-Limit exceeded please wait 5 minutes !^0")
                 else
                     print("^1Failed to authenticate, code "..resdata.code.." !^0")
                 end
