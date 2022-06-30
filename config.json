@@ -1,5 +1,6 @@
 {
   "token" :"",
   "port":"80",
-  "storename":"Pedrin"
+  "storename":"Pedrin",
+  "backupdb":"database backup channel id"
 }
