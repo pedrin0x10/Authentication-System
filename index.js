@@ -98,10 +98,22 @@ async function asyncintegrations() {
   console.log("Bot e HTTP Server estao ONLINE!");
 }
 
-function calcdays(n, s) {
-  var today = new Date(new Date().toUTCString()) / 1000;
-  var calc = (n - today) / 60000 + parseInt(s);
-  return Math.floor(calc);
+function pad2(n) {
+  return (n < 10 ? '0' : '') + n;
+}
+
+function calcdays(n,s) {
+	let unix_timestamp = n;
+	var date = new Date(unix_timestamp * 1000);
+	var month = pad2(date.getMonth()+1);
+	var day = pad2(date.getDate());
+	var year= date.getFullYear();
+	const startDate  = year + '-' + month + '-' + day;
+	const endDate    = new Date().toISOString().slice(0, 10);
+	const diffInMs   = new Date(startDate) - new Date(endDate);
+	const diffInDays = diffInMs / (1000 * 60 * 60 * 24) ;
+	let ret = parseInt(diffInDays) + parseInt(s);
+	return ret
 }
 
 function makeid(length) {
