@@ -39,15 +39,13 @@ const client = new Client({
 
 client.config = config;
 
-client.on("message", (message) => {
+client.on("messageCreate", (message) => {
   if (message.author.bot) return;
 
   if (message.content == "/configurate") {
     if (message.guild.ownerId != message.author.id) return message.reply({ content: "You aren´t the owner from this server please contact him to configure the channels !"});
     const row2 = new Discord.MessageActionRow().addComponents(new Discord.MessageButton().setCustomId("configurate").setLabel("CONFIGURATE").setStyle("SUCCESS"));
     message.reply({ content: "Click in the button to configurate the bot", components: [row2] });
-  }
-  if (message.content == "/configurate") {
     asyncintegrations();
   }
 });
